@@ -28,16 +28,20 @@ class GoalInitializer implements SmartInitializingSingleton {
 		String one = "one";
 		String two = "two";
 
-		this.goals.save(new Goal(one, rob, "Attend Chiefs game"));
-		this.goals.save(new Goal(one, joe, "Add OAuth 2.0 support to Spring Security"));
-		this.goals.save(new Goal(one, joe, "Tell Josh what to do"));
-		this.goals.save(new Goal(one, josh, "Be a good data steward"));
-		this.goals.save(new Goal(one, josh, "Try chicken and waffles on a stick"));
+		withTenant(one, tenant -> {
+			this.goals.save(new Goal(rob, "Attend Chiefs game"));
+			this.goals.save(new Goal(joe, "Add OAuth 2.0 support to Spring Security"));
+			this.goals.save(new Goal(joe, "Tell Josh what to do"));
+			this.goals.save(new Goal(josh, "Be a good data steward"));
+			this.goals.save(new Goal(josh, "Try chicken and waffles on a stick"));
+		});
 
-		this.goals.save(new Goal(two, josh, "Add multi-tenancy to Goalkeeper"));
-		this.goals.save(new Goal(two, josh, "Eat some mini-wheats"));
-		this.goals.save(new Goal(two, ria, "Give an awesome talk"));
-		this.goals.save(new Goal(two, ria, "Enjoy the rest of the conference"));
+		withTenant(two, tenant -> {
+			this.goals.save(new Goal(josh, "Add multi-tenancy to Goalkeeper"));
+			this.goals.save(new Goal(josh, "Eat some mini-wheats"));
+			this.goals.save(new Goal(ria, "Give an awesome talk"));
+			this.goals.save(new Goal(ria, "Enjoy the rest of the conference"));
+		});
 	}
 
 	private void withTenant(String tenant, Consumer<String> todo) {

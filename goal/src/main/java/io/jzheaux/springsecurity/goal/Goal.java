@@ -5,12 +5,10 @@ import java.util.UUID;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document
+@Document("#{@tenant.get()}_goal")
 public class Goal {
 	@Id
 	private UUID id;
-
-	private String tenant;
 
 	private String user;
 
@@ -18,9 +16,8 @@ public class Goal {
 
 	private Integer completed = 0;
 
-	public Goal(String tenant, String user, String text) {
+	public Goal(String user, String text) {
 		this.id = UUID.randomUUID();
-		this.tenant = tenant;
 		this.user = user;
 		this.text = text;
 	}
@@ -31,14 +28,6 @@ public class Goal {
 
 	public void setId(UUID id) {
 		this.id = id;
-	}
-
-	public String getTenant() {
-		return tenant;
-	}
-
-	public void setTenant(String tenant) {
-		this.tenant = tenant;
 	}
 
 	public String getUser() {

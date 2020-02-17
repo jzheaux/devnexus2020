@@ -6,8 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GoalRepository extends CrudRepository<Goal, String>, ToggleGoalRepository {
-	@Query("{ 'user' : ?#{authentication.tokenAttributes['user_id']}, " +
-			" 'tenant' : ?#{authentication.tokenAttributes['tenant_id']}} }")
+	@Query("{ 'user' : ?#{authentication.tokenAttributes['user_id']} }")
 	@Override
 	Iterable<Goal> findAll();
 }
