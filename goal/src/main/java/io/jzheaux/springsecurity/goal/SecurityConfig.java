@@ -1,11 +1,9 @@
 package io.jzheaux.springsecurity.goal;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
-
 import javax.servlet.http.HttpServletRequest;
-
-import com.google.common.base.Suppliers;
-import com.nimbusds.jwt.JWTParser;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,14 +13,22 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
-import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider;
-import org.springframework.security.oauth2.server.resource.introspection.NimbusOpaqueTokenIntrospector;
-import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Configuration
+@RestController
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+	private final Map<String, AuthenticationManager> authenticationManagers = new HashMap<>();
+
+	public SecurityConfig() {
+		addTenant("one");
+		addTenant("two");
+	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -33,42 +39,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 						.authenticationManagerResolver(resolver()));
 	}
 
-	AuthenticationManagerResolver<HttpServletRequest> resolver() {
-		Supplier<AuthenticationManager> tokenType = Suppliers.memoize(this::tokenType);
-		return request -> tokenType.get();
+	@PostMapping("/tenant/{tenant}")
+	String addTenant(@PathVariable("tenant") String tenant) {
+		String issuerUri = "http://idp:9999/auth/realms/" + tenant;
+		this.authenticationManagers.put(issuerUri, jwt(issuerUri));
+		return issuerUri;
 	}
 
-	AuthenticationManager tokenType() {
-		AuthenticationManager jwt = jwt();
-		AuthenticationManager opaqueToken = opaqueToken();
-		return authentication ->
-				isAJwt((BearerTokenAuthenticationToken) authentication) ?
-						jwt.authenticate(authentication) :
-						opaqueToken.authenticate(authentication);
+	@DeleteMapping("/tenant/{tenant}")
+	String removeTenant(@PathVariable("tenant") String tenant) {
+		String issuerUri = "http://idp:9999/auth/realms/" + tenant;
+		this.authenticationManagers.remove(issuerUri);
+		return issuerUri;
 	}
 
-	boolean isAJwt(BearerTokenAuthenticationToken token) {
-		try {
-			JWTParser.parse(token.getToken());
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
-	AuthenticationManager jwt() {
-		JwtDecoder jwt = JwtDecoders.fromIssuerLocation("http://idp:9999/auth/realms/one");
+	AuthenticationManager jwt(String issuer) {
+		JwtDecoder jwt = JwtDecoders.fromIssuerLocation(issuer);
 		JwtAuthenticationProvider provider = new JwtAuthenticationProvider(jwt);
 		return provider::authenticate;
 	}
 
-	AuthenticationManager opaqueToken() {
-		OpaqueTokenIntrospector introspector = new NimbusOpaqueTokenIntrospector(
-				"http://idp:9999/auth/realms/two/protocol/openid-connect/token/introspect",
-				"keeper",
-				"bfbd9f62-02ce-4638-a370-80d45514bd0a");
-		OpaqueTokenAuthenticationProvider provider = new OpaqueTokenAuthenticationProvider(introspector);
-		return provider::authenticate;
+	AuthenticationManagerResolver<HttpServletRequest> resolver() {
+		return new JwtIssuerAuthenticationManagerResolver
+				(this.authenticationManagers::get);
 	}
 
 	@Bean
