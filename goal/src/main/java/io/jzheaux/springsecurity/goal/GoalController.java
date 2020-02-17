@@ -19,18 +19,18 @@ public class GoalController {
 	}
 
 	@GetMapping("/goals")
-	Iterable<Goal> goals(@RequestHeader("tenant") String tenant, @CurrentUser String user) {
-		return this.goals.findByTenantAndUser(tenant, user);
+	Iterable<Goal> goals() {
+		return this.goals.findAll();
 	}
 
 	@PostMapping("/goal")
-	Goal goal(@RequestHeader("tenant") String tenant, @CurrentUser String user, @RequestBody String text) {
+	Goal goal(@CurrentTenant String tenant, @CurrentUser String user, @RequestBody String text) {
 		Goal goal = new Goal(tenant, user, text);
 		return this.goals.save(goal);
 	}
 
 	@PutMapping("/goal/{id}/toggle")
-	Goal toggle(@RequestHeader("tenant") String tenant, @CurrentUser String user, @PathVariable("id") UUID goalId) {
-		return this.goals.toggle(tenant, user, goalId);
+	Goal toggle(@CurrentUser String user, @PathVariable("id") UUID goalId) {
+		return this.goals.toggle(user, goalId);
 	}
 }
