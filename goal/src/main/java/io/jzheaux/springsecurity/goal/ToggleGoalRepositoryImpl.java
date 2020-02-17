@@ -19,9 +19,9 @@ public class ToggleGoalRepositoryImpl implements ToggleGoalRepository {
 	}
 
 	@Override
-	public Goal toggle(String user, UUID goalId) {
+	public Goal toggle(String tenant, String user, UUID goalId) {
 		return this.mongo.findAndModify(
-				query(where("id").is(goalId).and("user").is(user)),
+				query(where("id").is(goalId).and("tenant").is(tenant).and("user").is(user)),
 				new Update().bitwise("completed").xor(1),
 				FindAndModifyOptions.options().returnNew(true),
 				Goal.class);

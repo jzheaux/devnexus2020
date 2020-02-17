@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GoalRepository extends CrudRepository<Goal, String>, ToggleGoalRepository {
-	Iterable<Goal> findByUser(String user);
+	Iterable<Goal> findByTenantAndUser(String tenant, String user);
 }

@@ -10,14 +10,17 @@ public class Goal {
 	@Id
 	private UUID id;
 
+	private String tenant;
+
 	private String user;
 
 	private String text;
 
 	private Integer completed = 0;
 
-	public Goal(String user, String text) {
+	public Goal(String tenant, String user, String text) {
 		this.id = UUID.randomUUID();
+		this.tenant = tenant;
 		this.user = user;
 		this.text = text;
 	}
@@ -28,6 +31,14 @@ public class Goal {
 
 	public void setId(UUID id) {
 		this.id = id;
+	}
+
+	public String getTenant() {
+		return tenant;
+	}
+
+	public void setTenant(String tenant) {
+		this.tenant = tenant;
 	}
 
 	public String getUser() {
