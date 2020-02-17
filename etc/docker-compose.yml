@@ -1,0 +1,14 @@
+version: '3'
+services:
+  keycloak:
+    image: jboss/keycloak:7.0.0
+    ports:
+      - "9999:8080"
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: asdfasdfasdf
+      KEYCLOAK_IMPORT: /tmp/one-realm.json,/tmp/two-realm.json,/tmp/broker-realm.json
+    volumes:
+      - "./realms:/tmp"
+    extra_hosts:
+      - "idp:127.0.0.1"
